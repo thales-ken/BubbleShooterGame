@@ -1,10 +1,10 @@
 ﻿<!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#10162d">
-<title>Bubble Burst</title>
+<title>Estoura Bolhas</title>
 <style>
   :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   * { box-sizing: border-box; }
@@ -17,6 +17,7 @@
   .header-actions { display:flex; gap:5px; }
   .header-actions button { background:#ffffff12; color:#eaf0ff; border:1px solid #ffffff25; border-radius:11px; padding:8px 9px; min-height:38px; font-weight:750; font-size:12px; cursor:pointer; }
   @media (max-width:370px) { .header-actions button { padding:7px 6px; font-size:10px; } .header-actions { gap:3px; } }
+  @media (max-width:370px) { .brand { font-size:15px; letter-spacing:.04em; } .header-actions button { padding:6px 4px; font-size:9px; min-height:34px; } }
   .stats { display: grid; grid-template-columns: 1fr 1fr .8fr 1.35fr; gap: 6px; flex: 0 0 auto; }
   .stat { border: 1px solid #ffffff17; background: linear-gradient(135deg,#ffffff0d,#ffffff05); border-radius: 12px; padding: 7px 9px; min-width: 0; }
   .stat small { display:block; color:#9caed4; font-size: clamp(8px,2.5vw,10px); letter-spacing:.08em; text-transform:uppercase; white-space:nowrap; }
@@ -39,18 +40,18 @@
 </style>
 </head>
 <body>
-<main class="shell" aria-label="Bubble Burst game">
-  <header><div class="brand">Bubble <span>Burst</span></div><div class="header-actions"><button id="landingToggle" type="button" aria-pressed="true" aria-label="Toggle predicted landing cell">Cell on</button><button id="pause" aria-label="Pause game">II Pause</button><button id="restart" aria-label="Restart game">&#8635;</button><button class="mute" id="mute" aria-label="Toggle sound">Sound on</button></div></header>
+<main class="shell" aria-label="Jogo Estoura Bolhas">
+  <header><div class="brand">Estoura <span>Bolhas</span></div><div class="header-actions"><button id="landingToggle" type="button" aria-pressed="true" aria-label="Alternar indicação da posição de encaixe">Alvo: sim</button><button id="pause" aria-label="Pausar jogo">Pausar</button><button id="restart" aria-label="Reiniciar partida">&#8635;</button><button class="mute" id="mute" aria-label="Alternar som">&#9835; Som</button></div></header>
   <section class="stats" aria-live="polite">
-    <div class="stat"><small>Score</small><strong id="score">0</strong></div>
-    <div class="stat"><small>Best</small><strong id="best">0</strong></div>
-    <div class="stat"><small>Level</small><strong id="level">1</strong></div>
-    <div class="stat" id="dropStat"><small>Ceiling drop</small><strong id="drops">6 shots</strong></div>
+    <div class="stat"><small>Pontos</small><strong id="score">0</strong></div>
+    <div class="stat"><small>Recorde</small><strong id="best">0</strong></div>
+    <div class="stat"><small>Nível</small><strong id="level">1</strong></div>
+    <div class="stat" id="dropStat"><small>Queda do teto</small><strong id="drops">6 tiros</strong></div>
   </section>
-  <div class="board-wrap"><canvas id="game" aria-label="Bubble shooter game board"></canvas>
-    <div class="overlay" id="overlay"><div class="card"><div class="emoji" id="emoji">&#129767;</div><h1 id="title">Bubble Burst</h1><p id="message">Match 3 or more bubbles to clear the board. Golden stars clear their connected color group. Aim, tap to shoot, and swap your next bubble with Space.</p><button class="play" id="play">START GAME</button></div></div>
+  <div class="board-wrap"><canvas id="game" aria-label="Tabuleiro do jogo de estourar bolhas"></canvas>
+    <div class="overlay" id="overlay"><div class="card"><div class="emoji" id="emoji">&#129767;</div><h1 id="title">Estoura Bolhas</h1><p id="message">Forme grupos de 3 ou mais bolhas para limpar o tabuleiro. Estrelas douradas limpam o grupo de cores conectado. Mire e toque para atirar. Toque na próxima bolha ou pressione Espaço para trocar.</p><button class="play" id="play">COMEÇAR</button></div></div>
   </div>
-  <div class="hint">Tap anywhere on the board to aim and shoot &middot; Tap NEXT to swap &middot; Space to swap</div>
+  <div class="hint">Toque no tabuleiro para mirar e atirar &middot; Toque em PRÓX. para trocar &middot; Espaço troca</div>
 </main>
 <script>
 (() => {
@@ -73,12 +74,12 @@
   let state='menu', muted=false, audio=null, lastTime=0, combo=0, pointerDown=false,showLanding=storage.get('bubbleBurstShowLanding')!=='false';
   $('best').textContent=best;
   function showRuntimeError(error){
-    console.error('Bubble Burst stopped:',error);
+    console.error('O jogo parou:',error);
     state='error';
     $('emoji').textContent='!';
-    $('title').textContent='Game could not start';
-    $('message').textContent=`${error && error.message ? error.message : error}. Reload the page after checking browser compatibility.`;
-    $('play').textContent='RELOAD GAME';
+    $('title').textContent='Não foi possível iniciar';
+    $('message').textContent=`${error && error.message ? error.message : error}. Recarregue a página e verifique a compatibilidade do navegador.`;
+    $('play').textContent='RECARREGAR';
     $('overlay').classList.remove('hidden');
   }
   window.addEventListener('error',e=>showRuntimeError(e.error||e.message));
@@ -97,8 +98,8 @@
     // Use four colors at first, then add colors as levels rise. A matching pair is always reachable.
     for(let r=0;r<6;r++)for(let c=0;c<COLS;c++){if(r>=4&&Math.random()<.22)continue;grid[r][c]=Math.floor(Math.random()*4);}
     grid[6][4]=grid[6][5]=Math.floor(Math.random()*4);current=grid[6][4];next=randBubble();state='playing';$('overlay').classList.add('hidden');$('pause').textContent='II Pause';updateUI(); }
-  function updateUI(){ $('score').textContent=score.toLocaleString();$('best').textContent=best.toLocaleString();$('level').textContent=level;$('drops').textContent=shotsSinceDrop>=dropEvery()-1?'DROP NEXT':`${dropEvery()-shotsSinceDrop} shots`;$('dropStat').classList.toggle('warning',state==='playing'&&shotsSinceDrop>=dropEvery()-1); }
-  function setScore(n){score+=n;const newLevel=1+Math.floor(score/250);if(newLevel>level){level=newLevel;floatTexts.push({text:`LEVEL ${level}!`,x:W/2,y:TOP+90,life:1.5,max:1.5,color:'#a3f6ff'});sound(760,.25,'sine',.055,220);}if(score>best){best=score;storage.set('bubbleBurstBest',best);}updateUI();}
+  function updateUI(){const remaining=dropEvery()-shotsSinceDrop;$('score').textContent=score.toLocaleString('pt-BR');$('best').textContent=best.toLocaleString('pt-BR');$('level').textContent=level;$('drops').textContent=remaining<=1?'QUEDA PRÓXIMA':`${remaining} ${remaining===1?'tiro':'tiros'}`;$('dropStat').classList.toggle('warning',state==='playing'&&remaining<=1); }
+  function setScore(n){score+=n;const newLevel=1+Math.floor(score/250);if(newLevel>level){level=newLevel;floatTexts.push({text:`NÍVEL ${level}!`,x:W/2,y:TOP+90,life:1.5,max:1.5,color:'#a3f6ff'});sound(760,.25,'sine',.055,220);}if(score>best){best=score;storage.set('bubbleBurstBest',best);}updateUI();}
   function drawBubble(x,y,color,r=R,alpha=1){ if(color==null)return; const c=COLORS[color];ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor=c.hex;ctx.shadowBlur=8;
     const g=ctx.createRadialGradient(x-r*.38,y-r*.48,r*.08,x,y,r*1.1);g.addColorStop(0,'#ffffff');g.addColorStop(.16,c.light);g.addColorStop(.58,c.hex);g.addColorStop(1,shade(c.hex,-48));ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     ctx.fillStyle='#ffffff88';ctx.beginPath();ctx.ellipse(x-r*.32,y-r*.42,r*.27,r*.12,-.5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffffff35';ctx.beginPath();ctx.arc(x+r*.34,y+r*.38,r*.12,0,Math.PI*2);ctx.fill();if(color===6){ctx.fillStyle='#fff9dd';ctx.font=`${r*1.15}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('\u2605',x,y+1);}ctx.restore(); }
@@ -108,14 +109,14 @@
     const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#192746');bg.addColorStop(1,'#10182d');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
     ctx.strokeStyle='#ffffff08';ctx.lineWidth=1;for(let y=20;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
     // Danger line.
-    ctx.save();ctx.setLineDash([7,7]);ctx.strokeStyle='#ff647766';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(14,DANGER_Y);ctx.lineTo(W-14,DANGER_Y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#ff859277';ctx.font='700 10px system-ui';ctx.textAlign='left';ctx.fillText('DANGER',17,DANGER_Y-7);ctx.restore();
+    ctx.save();ctx.setLineDash([7,7]);ctx.strokeStyle='#ff647766';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(14,DANGER_Y);ctx.lineTo(W-14,DANGER_Y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#ff859277';ctx.font='700 10px system-ui';ctx.textAlign='left';ctx.fillText('PERIGO',17,DANGER_Y-7);ctx.restore();
     for(let r=0;r<MAX_ROWS;r++)for(let c=0;c<COLS;c++)if(grid[r][c]!=null){const p=center(r,c);drawBubble(p.x,p.y,grid[r][c]);}
     // Aim ray with accurate side-wall reflections.
-    if(state==='playing'&&!projectile){const trace=traceAim();ctx.save();ctx.fillStyle='#e7f2ff9c';for(let i=0;i<trace.points.length;i++){const p=trace.points[i];ctx.globalAlpha=Math.max(.15,.72-i/70);ctx.beginPath();ctx.arc(p.x,p.y,2.1,0,Math.PI*2);ctx.fill();}if(showLanding&&trace.cell){const p=center(trace.cell.r,trace.cell.c);ctx.globalAlpha=.92;ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,R+4,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#ffffff';ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.fillText('LANDS HERE',p.x,p.y-R-10);}ctx.restore();}
+    if(state==='playing'&&!projectile){const trace=traceAim();ctx.save();ctx.fillStyle='#e7f2ff9c';for(let i=0;i<trace.points.length;i++){const p=trace.points[i];ctx.globalAlpha=Math.max(.15,.72-i/70);ctx.beginPath();ctx.arc(p.x,p.y,2.1,0,Math.PI*2);ctx.fill();}if(showLanding&&trace.cell){const p=center(trace.cell.r,trace.cell.c);ctx.globalAlpha=.92;ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,R+4,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#ffffff';ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.fillText('ENCAIXA AQUI',p.x,p.y-R-10);}ctx.restore();}
     // Shooter and cannon barrel.
     const a=direction(),sx=W/2,sy=SHOOT_Y;ctx.save();ctx.translate(sx,sy);ctx.rotate(Math.atan2(a.y,a.x)+Math.PI/2);ctx.shadowColor='#6f9dff88';ctx.shadowBlur=14;const barrel=ctx.createLinearGradient(-11,0,11,0);barrel.addColorStop(0,'#6176aa');barrel.addColorStop(.5,'#d5e5ff');barrel.addColorStop(1,'#536a9d');ctx.fillStyle=barrel;roundRect(ctx,-11,-53,22,58,9);ctx.fill();ctx.fillStyle='#243658';roundRect(ctx,-14,-8,28,14,6);ctx.fill();ctx.restore();
     drawBubble(sx,sy,current,R+1);drawBubble(sx-48,sy+9,next,R*.72);
-    ctx.fillStyle='#aebfe2';ctx.font='700 9px system-ui';ctx.textAlign='center';ctx.fillText('NEXT',sx-48,sy+36);
+    ctx.fillStyle='#aebfe2';ctx.font='700 9px system-ui';ctx.textAlign='center';ctx.fillText('PRÓX.',sx-48,sy+36);
     // A generous glow makes the small swap preview easy to tap on touch screens.
     ctx.save();ctx.strokeStyle='#ffffff55';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx-48,sy+9,R+8,0,Math.PI*2);ctx.stroke();ctx.restore();
     // Keep the in-flight bubble visible, with a short trail that follows its velocity.
@@ -153,7 +154,7 @@
       for(const [rr,cc] of match){const p=center(rr,cc),color=grid[rr][cc];burst(p.x,p.y,color);grid[rr][cc]=null;}
       const gained=match.length*10+Math.max(0,combo-1)*25+(star?35:0);
       setScore(gained);sound(star?900:560+combo*100,.24,'sine',.065,190);
-      const label=star?'STAR BURST!':combo>1?`COMBO x${combo}!`:'NICE POP!';
+      const label=star?'ESTOURO ESTELAR!':combo>1?`COMBO x${combo}!`:'BOA!';
       floatTexts.push({text:label,x:W/2,y:TOP+100,life:1.15,max:1.15,color:star?'#fff0a0':combo>1?'#a3f6ff':'#ffffff'});
       // Any bubbles with no path to the ceiling detach and fall for bonus points.
       const attached=new Set(),q=[];
@@ -161,25 +162,25 @@
       while(q.length){const [ar,ac]=q.shift();for(const [nr,nc] of neighbors(ar,ac)){const k=`${nr},${nc}`;if(valid(nr,nc)&&grid[nr][nc]!=null&&!attached.has(k)){attached.add(k);q.push([nr,nc]);}}}
       let dropped=0;
       for(let rr=0;rr<MAX_ROWS;rr++)for(let cc=0;cc<COLS;cc++)if(grid[rr][cc]!=null&&!attached.has(`${rr},${cc}`)){const p=center(rr,cc);falling.push({x:p.x,y:p.y,color:grid[rr][cc],vx:(Math.random()-.5)*100,vy:-40,life:1.5,alpha:1});grid[rr][cc]=null;dropped++;}
-      if(dropped){setScore(dropped*20);sound(270,.28,'triangle',.045,-120);floatTexts.push({text:`+${dropped*20} DROP BONUS`,x:W/2,y:TOP+132,life:1.2,max:1.2,color:'#ffd88a'});}
+      if(dropped){setScore(dropped*20);sound(270,.28,'triangle',.045,-120);floatTexts.push({text:`BÔNUS DE QUEDA +${dropped*20}`,x:W/2,y:TOP+132,life:1.2,max:1.2,color:'#ffd88a'});}
       shotsSinceDrop=0;updateUI();if(!grid.some(row=>row.some(v=>v!=null)))finish(true);
     }else{combo=0;if(shotsSinceDrop>=dropEvery()){dropRow();shotsSinceDrop=0;}if(grid.some(row=>row.some(v=>v!=null))){for(let rr=0;rr<MAX_ROWS;rr++)for(let cc=0;cc<COLS;cc++)if(grid[rr][cc]!=null&&center(rr,cc).y+R>=DANGER_Y){finish(false);break;}}updateUI();}
   }  function burst(x,y,color){effects.push({x,y,r:R,a:.8});for(let i=0;i<8;i++){const a=Math.random()*Math.PI*2,s=50+Math.random()*135;particles.push({x,y,color,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.32+Math.random()*.35,max:.67,alpha:1,r:R});}}
-  function dropRow(){for(let r=MAX_ROWS-1;r>0;r--)grid[r]=grid[r-1].slice();grid[0]=Array.from({length:COLS},()=>randColor());sound(140,.5,'triangle',.045,-60);floatTexts.push({text:'CEILING DROP!',x:W/2,y:TOP+35,life:1.2,max:1.2,color:'#ffb17d'});updateUI();}
-  function finish(win){if(state!=='playing')return;state=win?'won':'lost';projectile=null;$('emoji').textContent=win?String.fromCodePoint(0x2728):String.fromCodePoint(0x1F4A5);$('title').textContent=win?'Board cleared!':'Game over';$('message').textContent=win?`Amazing run! You scored ${score.toLocaleString()} points.`:`The bubbles crossed the danger line. Final score: ${score.toLocaleString()}.`;$('play').textContent='PLAY AGAIN';$('overlay').classList.remove('hidden');$('pause').textContent='II Pause';if(win){[660,830,990].forEach((f,i)=>setTimeout(()=>sound(f,.38,'sine',.07,100),i*150));}else{sound(220,.7,'triangle',.07,-140);}}
+  function dropRow(){for(let r=MAX_ROWS-1;r>0;r--)grid[r]=grid[r-1].slice();grid[0]=Array.from({length:COLS},()=>randColor());sound(140,.5,'triangle',.045,-60);floatTexts.push({text:'DESCIDA DO TETO!',x:W/2,y:TOP+35,life:1.2,max:1.2,color:'#ffb17d'});updateUI();}
+  function finish(win){if(state!=='playing')return;state=win?'won':'lost';projectile=null;$('emoji').textContent=win?String.fromCodePoint(0x2728):String.fromCodePoint(0x1F4A5);$('title').textContent=win?'Tabuleiro limpo!':'Fim de jogo';$('message').textContent=win?`Mandou bem! Você fez ${score.toLocaleString('pt-BR')} pontos.`:`As bolhas cruzaram a linha de perigo. Pontuação final: ${score.toLocaleString('pt-BR')}.`;$('play').textContent='JOGAR DE NOVO';$('overlay').classList.remove('hidden');$('pause').textContent='Pausar';if(win){[660,830,990].forEach((f,i)=>setTimeout(()=>sound(f,.38,'sine',.07,100),i*150));}else{sound(220,.7,'triangle',.07,-140);}}
   function pointerPos(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};}
   canvas.addEventListener('pointermove',e=>{aim=pointerPos(e);});
   canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);aim=pointerPos(e);pointerDown=true;});
   function swapBubbles(){if(state==='playing'&&!projectile){[current,next]=[next,current];sound(440,.08,'sine',.04);}}
-  function togglePause(){if(state==='playing'){state='paused';$('title').textContent='Paused';$('emoji').textContent='II';$('message').textContent='Take a breather. Your board and shot are waiting.';$('play').textContent='RESUME';$('pause').textContent='Resume';$('overlay').classList.remove('hidden');}else if(state==='paused'){state='playing';$('overlay').classList.add('hidden');$('pause').textContent='II Pause';}}
+  function togglePause(){if(state==='playing'){state='paused';$('title').textContent='Pausado';$('emoji').textContent='II';$('message').textContent='Descanse um pouco. Sua partida está pausada.';$('play').textContent='CONTINUAR';$('pause').textContent='Retomar';$('overlay').classList.remove('hidden');}else if(state==='paused'){state='playing';$('overlay').classList.add('hidden');$('pause').textContent='Pausar';}}
   canvas.addEventListener('pointerup',e=>{const p=pointerPos(e);pointerDown=false;if(state!=='playing')return;if(Math.hypot(p.x-(W/2-48),p.y-(SHOOT_Y+9))<31){swapBubbles();return;}if(p.y<SHOOT_Y-35)shoot();});
   $('play').addEventListener('click',()=>{if(state==='error'){location.reload();return;}if(state==='paused'){togglePause();return;}try{sound(500,.08,'sine',.035);start();draw();}catch(error){showRuntimeError(error);}});
   $('pause').addEventListener('click',togglePause);
-  function updateLandingToggle(){$('landingToggle').textContent=showLanding?'Cell on':'Cell off';$('landingToggle').setAttribute('aria-pressed',String(showLanding));$('landingToggle').setAttribute('aria-label',showLanding?'Hide predicted landing cell':'Show predicted landing cell');}
+  function updateLandingToggle(){$('landingToggle').textContent=showLanding?'Alvo: sim':'Alvo: não';$('landingToggle').setAttribute('aria-pressed',String(showLanding));$('landingToggle').setAttribute('aria-label',showLanding?'Ocultar posição prevista de encaixe':'Mostrar posição prevista de encaixe');}
   $('landingToggle').addEventListener('click',()=>{showLanding=!showLanding;storage.set('bubbleBurstShowLanding',String(showLanding));updateLandingToggle();});
   updateLandingToggle();
   $('restart').addEventListener('click',()=>{try{start();draw();}catch(error){showRuntimeError(error);}});
-  $('mute').addEventListener('click',()=>{muted=!muted;$('mute').textContent=muted?'â™« Sound off':'â™« Sound on';$('mute').setAttribute('aria-label',muted?'Turn sound on':'Turn sound off');if(!muted)sound(600,.08);});
+  $('mute').addEventListener('click',()=>{muted=!muted;$('mute').textContent=muted?'♫ Mudo':'♫ Som';$('mute').setAttribute('aria-label',muted?'Ativar som':'Desativar som');if(!muted)sound(600,.08);});
   window.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();swapBubbles();}else if(e.code==='Escape')togglePause();else if(e.code==='Enter'&&state!=='playing')$('play').click();});
   function loop(t){requestAnimationFrame(loop);try{const dt=Math.min(.033,(t-lastTime)/1000||0);lastTime=t;if(state!=='paused')update(dt);draw();}catch(error){showRuntimeError(error);}}
   requestAnimationFrame(loop);
